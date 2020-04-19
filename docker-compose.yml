@@ -2,10 +2,11 @@ version: '3.7'
 
 services:
   web:
-    build: ./src
+    build: .
+    image: fastapi-crud-web
     command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
     volumes:
-      - ./src/:/usr/src/app/
+      - ./:/usr/src/app/
     ports:
       - 8002:8000
     environment:
