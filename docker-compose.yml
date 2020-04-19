@@ -10,7 +10,12 @@ services:
     ports:
       - 8002:8000
     environment:
+      - CELERY_BACKEND=redis://redis:6379/0
+      - CELERY_BROKER=redis://redis:6379/0
       - DATABASE_URL=postgresql://hello_fastapi:hello_fastapi@db/hello_fastapi_dev
+    depends_on:
+      - redis
+
   db:
     image: postgres:12.1-alpine
     volumes:
@@ -19,6 +24,21 @@ services:
       - POSTGRES_USER=hello_fastapi
       - POSTGRES_PASSWORD=hello_fastapi
       - POSTGRES_DB=hello_fastapi_dev
+
+  celery:
+    image: fastapi-crud-web
+    volumes:
+      - ./:/usr/src/app
+    command: celery -A app.tasks worker --loglevel=info
+    environment:
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - web
+      - redis
+
+  redis:
+    image: redis:5.0.3-alpine
 
 volumes:
   postgres_data:
