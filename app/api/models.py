@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, Field, PositiveInt
 
 
@@ -8,3 +10,16 @@ class NoteSchema(BaseModel):
 
 class NoteDB(NoteSchema):
     id: PositiveInt
+
+
+class TaskCreate(BaseModel):
+    number: int
+
+
+class TaskId(BaseModel):
+    task_id: str
+
+
+class TaskState(TaskId):
+    state: str
+    result: Any

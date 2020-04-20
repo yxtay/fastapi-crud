@@ -3,17 +3,18 @@ version: '3.7'
 services:
   web:
     build: .
-    image: fastapi-crud-web
-    command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+    image: web
+    command: gunicorn app.main:app --reload --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
     volumes:
       - ./:/usr/src/app/
     ports:
-      - 8002:8000
+      - 8000:8000
     environment:
-      - CELERY_BACKEND=redis://redis:6379/0
-      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379
+      - CELERY_BROKER=redis://redis:6379
       - DATABASE_URL=postgresql://hello_fastapi:hello_fastapi@db/hello_fastapi_dev
     depends_on:
+      - db
       - redis
 
   db:
@@ -26,16 +27,25 @@ services:
       - POSTGRES_DB=hello_fastapi_dev
 
   celery:
-    image: fastapi-crud-web
+    image: web
     volumes:
       - ./:/usr/src/app
     command: celery -A app.tasks worker --loglevel=info
     environment:
-      - CELERY_BROKER=redis://redis:6379/0
-      - CELERY_BACKEND=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379
+      - CELERY_BROKER=redis://redis:6379
     depends_on:
-      - web
       - redis
+      - web
+
+  monitor:
+    image: web
+    ports:
+      - 5555:5555
+    command:  flower -A app.tasks --port=5555 --broker=redis://redis:6379
+    depends_on:
+      - redis
+      - web
 
   redis:
     image: redis:5.0.3-alpine

@@ -4,10 +4,10 @@ from time import sleep
 
 import celery
 
-CELERY_BROKER = os.environ.get('CELERY_BROKER')
-CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
+CELERY_BROKER = os.environ.get("CELERY_BROKER")
+CELERY_BACKEND = os.environ.get("CELERY_BACKEND")
 
-app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
+celery = celery.Celery("tasks", broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
 
 def fib(n):
@@ -32,5 +32,4 @@ def delay(func):
     return wrapped
 
 
-fib_delayed = delay(fib)
-fib_celery = app.task(fib_delayed)
+fib_celery = celery.task(delay(fib))
