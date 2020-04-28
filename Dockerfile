@@ -1,26 +1,22 @@
 # pull official base image
-FROM python:3.6.8-alpine
+FROM python:3.6-slim-buster
 
 # set work directory
 WORKDIR /usr/src/app
 
 # set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 
 # copy requirements file
-COPY requirements.txt /usr/src/app/requirements.txt
+COPY requirements.txt requirements.txt
 
 # install dependencies
-RUN set -eux \
-    && apk add --no-cache --virtual .build-deps build-base \
-        libressl-dev libffi-dev gcc musl-dev python3-dev \
-        postgresql-dev \
-    && pip install --upgrade pip setuptools wheel \
-    && pip install -r /usr/src/app/requirements.txt \
+RUN python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && python -m pip install --no-cache-dir -r requirements.txt \
     && rm -rf /root/.cache/pip
 
 # copy project
-COPY . /usr/src/app/
+COPY app app
+COPY tests tests
 
 CMD uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
