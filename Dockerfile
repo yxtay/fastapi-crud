@@ -1,19 +1,18 @@
 # pull official base image
-FROM python:3.6-slim-buster
+FROM python:3.11-slim
 
 # set work directory
 WORKDIR /usr/src/app
 
 # set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
 # copy requirements file
 COPY requirements.txt requirements.txt
 
 # install dependencies
-RUN python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
-    && python -m pip install --no-cache-dir -r requirements.txt \
-    && rm -rf /root/.cache/pip
+RUN python -m pip install --no-cache-dir -r requirements.txt
 
 # copy project
 COPY app app

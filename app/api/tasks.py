@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, status
 
 from app.api.models import TaskCreate, TaskId, TaskState
 from app.tasks import celery, fib_celery
@@ -6,8 +6,8 @@ from app.tasks import celery, fib_celery
 router = APIRouter()
 
 
-@router.post("/create", response_model=TaskId, status_code=200)
-def task_create(task: TaskCreate):
+@router.post("/", response_model=TaskId, status_code=status.HTTP_200_OK)
+def create_note(task: TaskCreate):
     task = fib_celery.delay(task.number)
 
     result = {
@@ -16,8 +16,8 @@ def task_create(task: TaskCreate):
     return result
 
 
-@router.get("/state/{task_id}", response_model=TaskState, status_code=200)
-def task_status(task_id: str):
+@router.get("/{task_id}", response_model=TaskState, status_code=status.HTTP_200_OK)
+def get_task_status(task_id: str):
     task = celery.AsyncResult(task_id)
 
     result = {

@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouter, HTTPException, Path, status
 
 from app.api import crud
 from app.api.models import NoteDB, NoteSchema
@@ -8,7 +8,7 @@ from app.api.models import NoteDB, NoteSchema
 router = APIRouter()
 
 
-@router.post("/", response_model=NoteDB, status_code=201)
+@router.post("/", response_model=NoteDB, status_code=status.HTTP_201_CREATED)
 async def create_note(payload: NoteSchema):
     note_id = await crud.post(payload)
 
@@ -24,7 +24,9 @@ async def create_note(payload: NoteSchema):
 async def read_note(id: int = Path(..., gt=0)):
     note = await crud.get(id)
     if not note:
-        raise HTTPException(status_code=404, detail="Note not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Note not found"
+        )
     return note
 
 
@@ -37,7 +39,9 @@ async def read_all_notes():
 async def update_note(payload: NoteSchema, id: int = Path(..., gt=0)):
     note = await crud.get(id)
     if not note:
-        raise HTTPException(status_code=404, detail="Note not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Note not found"
+        )
 
     note_id = await crud.put(id, payload)
 
@@ -53,7 +57,9 @@ async def update_note(payload: NoteSchema, id: int = Path(..., gt=0)):
 async def delete_note(id: int = Path(..., gt=0)):
     note = await crud.get(id)
     if not note:
-        raise HTTPException(status_code=404, detail="Note not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Note not found"
+        )
 
     await crud.delete(id)
 
