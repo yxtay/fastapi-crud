@@ -4,9 +4,10 @@ services:
   web:
     build: .
     image: web
-    command: gunicorn app.main:app --reload --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+    command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
     volumes:
-      - ./:/usr/src/app/
+      - ./app/:/usr/src/app/app/
+      - ./tests/:/usr/src/app/test/
     ports:
       - 8000:8000
     environment:
@@ -33,7 +34,8 @@ services:
   celery:
     image: web
     volumes:
-      - ./:/usr/src/app
+      - ./app/:/usr/src/app/app/
+      - ./tests/:/usr/src/app/test/
     command: celery -A app.tasks worker --loglevel=info
     environment:
       - CELERY_BACKEND=redis://redis:6379

@@ -2,20 +2,25 @@
 FROM python:3.11-slim
 
 # set work directory
-WORKDIR /usr/src/app
+ARG WORKDIR=/usr/src/app
+ARG VIRTUAL_ENV=${WORKDIR}/.venv
+ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
+
+WORKDIR ${WORKDIR}
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 # copy requirements file
-COPY requirements.txt requirements.txt
+COPY pyproject.toml poetry.lock ./
 
 # install dependencies
-RUN python -m pip install --no-cache-dir -r requirements.txt
+RUN --mount=type=cache,target=${HOME}/.cache/pypoetry \
+    python -m pip install --no-cache-dir poetry \
+    && poetry config virtualenvs.in-project true \
+    && poetry install --no-root
 
 # copy project
 COPY app app
 COPY tests tests
-
-CMD uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
