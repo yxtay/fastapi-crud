@@ -7,7 +7,7 @@ services:
     command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
     volumes:
       - ./app/:/usr/src/app/app/
-      - ./tests/:/usr/src/app/test/
+      - ./tests/:/usr/src/app/tests/
     ports:
       - 8000:8000
     environment:
@@ -35,7 +35,6 @@ services:
     image: web
     volumes:
       - ./app/:/usr/src/app/app/
-      - ./tests/:/usr/src/app/test/
     command: celery -A app.tasks worker --loglevel=info
     environment:
       - CELERY_BACKEND=redis://redis:6379
