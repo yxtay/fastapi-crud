@@ -1,23 +1,38 @@
 import pytest
 
-from app.api import crud
+
+@pytest.fixture()
+def mock_post(mocker):
+    return mocker.patch("app.api.crud.post")
 
 
-def test_create_note(test_app, monkeypatch):
+@pytest.fixture()
+def mock_get(mocker):
+    return mocker.patch("app.api.crud.get")
+
+
+@pytest.fixture()
+def mock_get_all(mocker):
+    return mocker.patch("app.api.crud.get_all")
+
+
+@pytest.fixture()
+def mock_put(mocker):
+    return mocker.patch("app.api.crud.put")
+
+
+@pytest.fixture()
+def mock_delete(mocker):
+    return mocker.patch("app.api.crud.delete")
+
+
+def test_create_note(test_app, mock_post):
+    note_id = 1
     test_request_payload = {"title": "something", "description": "something else"}
-    test_response_payload = {
-        "id": 1,
-        "title": "something",
-        "description": "something else",
-    }
-
-    async def mock_post(payload):
-        return 1
-
-    monkeypatch.setattr(crud, "post", mock_post)
+    test_response_payload = {"id": note_id, **test_request_payload}
+    mock_post.return_value = note_id
 
     response = test_app.post("/notes/", json=test_request_payload)
-
     assert response.status_code == 201
     assert response.json() == test_response_payload
 
@@ -30,24 +45,18 @@ def test_create_note_invalid_json(test_app):
     assert response.status_code == 422
 
 
-def test_read_note(test_app, monkeypatch):
-    test_data = {"id": 1, "title": "something", "description": "something else"}
+def test_read_note(test_app, mock_get):
+    note_id = 1
+    test_data = {"id": note_id, "title": "something", "description": "something else"}
+    mock_get.return_value = test_data
 
-    async def mock_get(id):
-        return test_data
-
-    monkeypatch.setattr(crud, "get", mock_get)
-
-    response = test_app.get("/notes/1")
+    response = test_app.get(f"/notes/{note_id}")
     assert response.status_code == 200
     assert response.json() == test_data
 
 
-def test_read_note_incorrect_id(test_app, monkeypatch):
-    async def mock_get(id):
-        return None
-
-    monkeypatch.setattr(crud, "get", mock_get)
+def test_read_note_incorrect_id(test_app, mock_get):
+    mock_get.return_value = None
 
     response = test_app.get("/notes/999")
     assert response.status_code == 404
@@ -57,39 +66,33 @@ def test_read_note_incorrect_id(test_app, monkeypatch):
     assert response.status_code == 422
 
 
-def test_read_notes(test_app, monkeypatch):
-    test_data = [{"id": 1, "title": "something", "description": "something else"}]
-
-    async def mock_get_all():
-        return test_data
-
-    monkeypatch.setattr(crud, "get_all", mock_get_all)
+def test_read_notes(test_app, mock_get_all):
+    note_id = 1
+    test_data = [{"id": note_id, "title": "something", "description": "something else"}]
+    mock_get_all.return_value = test_data
 
     response = test_app.get("/notes/")
     assert response.status_code == 200
     assert response.json() == test_data
 
 
-def test_update_note(test_app, monkeypatch):
-    test_update_data = {"title": "someone", "description": "someone else", "id": 1}
+def test_update_note(test_app, mock_get, mock_put):
+    note_id = 1
+    test_update_data = {
+        "id": note_id,
+        "title": "someone",
+        "description": "someone else",
+    }
+    mock_get.return_value = note_id
+    mock_put.return_value = note_id
 
-    async def mock_get(id):
-        return True
-
-    monkeypatch.setattr(crud, "get", mock_get)
-
-    async def mock_put(id, payload):
-        return 1
-
-    monkeypatch.setattr(crud, "put", mock_put)
-
-    response = test_app.put("/notes/1/", json=test_update_data)
+    response = test_app.put(f"/notes/{note_id}/", json=test_update_data)
     assert response.status_code == 200
     assert response.json() == test_update_data
 
 
 @pytest.mark.parametrize(
-    "id, payload, status_code",
+    "note_id, payload, status_code",
     [
         [1, {}, 422],
         [1, {"description": "bar"}, 422],
@@ -99,39 +102,26 @@ def test_update_note(test_app, monkeypatch):
         [0, {"title": "foo", "description": "bar"}, 422],
     ],
 )
-def test_update_note_invalid(test_app, monkeypatch, id, payload, status_code):
-    async def mock_get(id):
-        return None
+def test_update_note_invalid(test_app, mock_get, note_id, payload, status_code):
+    mock_get.return_value = None
 
-    monkeypatch.setattr(crud, "get", mock_get)
-
-    response = test_app.put(f"/notes/{id}/", json=payload)
+    response = test_app.put(f"/notes/{note_id}/", json=payload)
     assert response.status_code == status_code
 
 
-def test_remove_note(test_app, monkeypatch):
-    test_data = {"title": "something", "description": "something else", "id": 1}
+def test_remove_note(test_app, mock_get, mock_delete):
+    note_id = 1
+    test_data = {"title": "something", "description": "something else", "id": note_id}
+    mock_get.return_value = test_data
+    mock_delete.return_value = note_id
 
-    async def mock_get(id):
-        return test_data
-
-    monkeypatch.setattr(crud, "get", mock_get)
-
-    async def mock_delete(id):
-        return id
-
-    monkeypatch.setattr(crud, "delete", mock_delete)
-
-    response = test_app.delete("/notes/1/")
+    response = test_app.delete(f"/notes/{note_id}/")
     assert response.status_code == 200
     assert response.json() == test_data
 
 
-def test_remove_note_incorrect_id(test_app, monkeypatch):
-    async def mock_get(id):
-        return None
-
-    monkeypatch.setattr(crud, "get", mock_get)
+def test_remove_note_incorrect_id(test_app, mock_get):
+    mock_get.return_value = None
 
     response = test_app.delete("/notes/999/")
     assert response.status_code == 404

@@ -16,10 +16,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY pyproject.toml poetry.lock ./
 
 # install dependencies
-RUN --mount=type=cache,target=${HOME}/.cache/pypoetry \
-    python -m pip install --no-cache-dir poetry \
+RUN python -m pip install --no-cache-dir poetry \
     && poetry config virtualenvs.in-project true \
-    && poetry install --no-root
+    && poetry install
 
 # copy project
 COPY app app
