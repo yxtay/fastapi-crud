@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import APIRouter, HTTPException, Path, status
 
 from app.api import crud
@@ -30,7 +28,7 @@ async def read_note(id: int = Path(..., gt=0)):
     return note
 
 
-@router.get("/", response_model=List[NoteDB])
+@router.get("/", response_model=list[NoteDB])
 async def read_all_notes():
     return await crud.get_all()
 
