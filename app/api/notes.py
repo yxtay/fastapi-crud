@@ -1,14 +1,14 @@
+from contextlib import asynccontextmanager
 from typing import Annotated
 
 from databases import Database
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 
 from app.api import crud
+from app.api.db import database, engine, metadata
 from app.api.models import NoteDB, NoteSchema
-from app.db import database, engine, metadata
 
 metadata.create_all(engine)
-
 router = APIRouter()
 
 

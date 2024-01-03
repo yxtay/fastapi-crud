@@ -1,7 +1,7 @@
 from databases import Database
 
 from app.api.models import NoteSchema
-from app.db import notes
+from app.api.db import notes
 
 
 async def post(db: Database, payload: NoteSchema):
